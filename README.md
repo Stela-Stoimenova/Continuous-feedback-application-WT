@@ -1,15 +1,203 @@
-# Continuous-feedback-application-WT
-Continuous feedback application
+# Continuous Feedback Application
 
-Objective :
-Developing a web application which enables users to provide continous feedback to an activity
-Description
-The application must enable users to provide continuous feedback to a course or tutorial.
+A real-time web application that enables students to provide anonymous, continuous feedback during lectures and tutorials through an intuitive emoticon-based interface.
 
-The application is built on a Single Page Application architecture and is accessible from the browser on the desktop, mobile devices or tablets (depending on user preference).
-(Minimal) functionality
-As a professor i can define an activity at a particular date, with a description  and a unique access code for the activity. The activity is accessible for a set period of time.
-As a student, i can input a code to participate in a defined activity. The code can be used for the duration of the activity.
-As a student who has accessed an activity i have access to an interface split into 4 rectagles each containing an emoticon (smiley face, frowny face, surprised face, confused face). At any time i can press an emoticon to react to the activity. As a student i can add an unlimited number of feedback instances.
-As a professor i can see the continuous feedback stream, with each feedback instance associated to the time it was generated at. I can only see the feedback as anonymous. For myself the feedback is available both during and after the activity.
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Database Design](#database-design)
+- [Technology Stack](#technology-stack)
+- [API Endpoints](#api-endpoints)
+- [Development Workflow](#development-workflow)
+- [Project Stages](#project-stages)
+- [Application Structure](#application-structure)
+
+## Overview
+
+This Single Page Application (SPA) allows professors to create feedback sessions for their courses or tutorials. Students join these sessions using unique access codes and provide real-time feedback through four emoticon options (happy, bored, surprised, confused). All feedback is completely anonymous, timestamped, and visualized in real-time on the professor's dashboard.
+
+The application is accessible from any browser on desktop, mobile devices, or tablets.
+
+## Features
+
+### Professor Capabilities
+- Authenticate via login system
+- Create feedback activities with unique access codes
+- Set specific time windows for activity availability
+- View live feedback streams during sessions
+- Access historical feedback data after sessions end
+
+### Student Capabilities
+- Join activities anonymously using access codes
+- Submit unlimited feedback instances during active sessions
+- Select from four emotional states (happy, bored, surprised, confused)
+- Participate from any device with a browser
+
+## Database Design
+
+The application uses a minimal three-entity relational database design that satisfies all core functional requirements.
+
+### Entity Relationship Overview
+
+**User** (Professor/Admin) - Represents the instructor creating and managing activities
+
+**Activity** (Primary Object) - The feedback session linking professors to feedback events
+
+**Feedback** (Core Data) - Individual anonymous feedback submissions
+
+### Database Schema
+
+#### User Table
+
+| Field | Type | Constraints |
+|-------|------|-------------|
+| id | UUID | PRIMARY KEY |
+| email | VARCHAR | UNIQUE, NOT NULL |
+| name | VARCHAR | NOT NULL |
+| role | ENUM('PROFESSOR', 'ADMIN') | NOT NULL |
+
+**Index:** UNIQUE(email) for efficient duplicate checking
+
+**Note:** Password hash field can be added when implementing authentication.
+
+#### Activity Table
+
+| Field | Type | Constraints |
+|-------|------|-------------|
+| id | UUID | PRIMARY KEY |
+| professor_id | UUID | FOREIGN KEY → User(id), ON DELETE CASCADE |
+| access_code | VARCHAR(10) | UNIQUE, NOT NULL |
+| starts_at | TIMESTAMPTZ | NOT NULL |
+| ends_at | TIMESTAMPTZ | NOT NULL |
+
+**Constraints:** CHECK (starts_at < ends_at)
+
+**Indexes:** 
+- (access_code) - for fast code validation
+- (professor_id, starts_at) - for efficient activity listing
+
+**Note:** Access code comparison should be case-insensitive.
+
+#### Feedback Table
+
+| Field | Type | Constraints |
+|-------|------|-------------|
+| id | UUID | PRIMARY KEY |
+| activity_id | UUID | FOREIGN KEY → Activity(id), ON DELETE CASCADE |
+| emotion_type | SMALLINT | NOT NULL, CHECK (emotion_type IN (1,2,3,4)) |
+| created_at | TIMESTAMPTZ | DEFAULT now(), NOT NULL |
+| anonymous_session_id | VARCHAR(64) | NULL |
+
+**Emotion Types:** 1 = Happy, 2 = Bored, 3 = Surprised, 4 = Confused
+
+**Indexes:**
+- (activity_id, created_at) - optimizes timeline queries for live feedback display
+- (activity_id, anonymous_session_id) - enables rate limiting and unique participant counting
+
+### Anonymous Session ID Explained
+
+The `anonymous_session_id` is a unique identifier generated by each student's device when joining an activity. This approach preserves complete anonymity while enabling:
+
+- Counting distinct participants without identifying individuals
+- Implementing rate limiting to prevent spam
+- Analyzing participation patterns per device per session
+
+The token is both "per-device" and "per-activity," ensuring complete isolation between different feedback sessions.
+
+### Index Strategy Rationale
+
+Two indexes on the Feedback table serve distinct purposes:
+
+**Index 1: (activity_id, created_at)**
+Used when professors view the live feedback timeline. Enables efficient chronological retrieval of all feedback for a given activity.
+
+**Index 2: (activity_id, anonymous_session_id)**
+Supports rate-limiting operations and participant analysis. Allows quick lookup of feedback frequency per anonymous student within time windows.
+
+## Technology Stack
+
+### Frontend
+- **React.js** - Component-based SPA framework, studied in course curriculum
+- **Tailwind CSS** - Utility-first styling for rapid UI development
+- **HTTP Polling** - Periodic requests to fetch feedback updates (reliable and simple)
+- **Socket.io**  - WebSocket implementation for true real-time data streaming
+
+### Backend
+- **Node.js** - JavaScript runtime environment (mandatory)
+- **Express.js** - RESTful API framework
+- **Sequelize ORM** - Database abstraction layer with built-in SQL injection protection
+- **PostgreSQL** - Production relational database (SQLite for development)
+
+
+## API Endpoints
+
+### Authentication
+```
+POST /api/auth/login
+```
+Authenticates a professor and returns a session token.
+
+### Activity Management
+```
+POST /api/activities
+```
+Creates a new feedback activity (requires authentication).
+
+```
+GET /api/activities/:code
+```
+Validates an access code and returns activity details to students.
+
+### Feedback Operations
+```
+POST /api/feedback
+```
+Submits an anonymous feedback instance for a specific activity. Triggers WebSocket broadcast if real-time mode is active.
+
+```
+GET /api/feedback/:activityId?since=timestamp
+```
+Returns the latest feedback data for the professor. Used by polling to display continuous feedback updates.
+
+### Real-Time (Optional)
+```
+WebSocket / Socket.io channel
+```
+Provides a live data stream to the professor dashboard, sending new feedback events instantly when received.
+
+## Development Workflow
+
+### Branch Strategy
+
+**IMPORTANT:** Never commit directly to main/master branch. All development must occur on feature branches.
+
+
+### Emoticon Configuration
+
+```javascript
+const emotions = [
+  { type: 'happy', label: 'Happy', value: 1 },
+  { type: 'sad', label: 'Bored', value: 2 },
+  { type: 'surprised', label: 'Surprised', value: 3 },
+  { type: 'confused', label: 'Confused', value: 4 }
+];
+```
+
+Render these in a 2x2 CSS grid layout. On click, submit feedback to the POST /api/feedback endpoint.
+
+### Routing Structure
+
+Each page corresponds to a route:
+- `/professor/create` - Create new activity
+- `/professor/activities` - View activity list
+- `/professor/activity/:id` - Live feedback view
+- `/student/join` - Enter access code
+- `/student/feedback/:activityId` - Submit feedback
+
+More coming soon...
+
+To fulfill the requirement of accessing data from an external service, a public API will be integrated. Specific implementation details will be determined during Stage 2 development.
+
+---
 
