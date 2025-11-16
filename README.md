@@ -1,7 +1,7 @@
 # Continuous-feedback-application-WT
 Continuous feedback application
 
-Objective
+Objective :
 Developing a web application which enables users to provide continous feedback to an activity
 Description
 The application must enable users to provide continuous feedback to a course or tutorial.
