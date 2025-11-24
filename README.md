@@ -19,9 +19,10 @@ This Single Page Application (SPA) allows professors to create feedback sessions
 
 The application is accessible from any browser on desktop, mobile devices, or tablets.
 
-## Features
+## Features and functionalities
 
 ### Professor Capabilities
+- Sign up for an account
 - Authenticate via login system
 - Create feedback activities with unique access codes
 - Set specific time windows for activity availability
@@ -52,16 +53,17 @@ The application uses a minimal three-entity relational database design that sati
 
 #### User Table
 
-| Field | Type | Constraints |
-|-------|------|-------------|
-| id | UUID | PRIMARY KEY |
-| email | VARCHAR | UNIQUE, NOT NULL |
-| name | VARCHAR | NOT NULL |
-| role | ENUM('PROFESSOR', 'ADMIN') | NOT NULL |
+| Field          | Type   | Constraints                          |
+|----------------|--------|--------------------------------------|
+| id             | UUID   | PRIMARY KEY                           |
+| email          | VARCHAR | UNIQUE, NOT NULL                     |
+| name           | VARCHAR | NOT NULL                              |
+| password_hash  | VARCHAR | NOT NULL                              |
+| role           | ENUM('PROFESSOR', 'ADMIN') | NOT NULL          |
 
-**Index:** UNIQUE(email) for efficient duplicate checking
-
-**Note:** Password hash field can be added when implementing authentication.
+**Notes:**
+- `password_hash` stores a secure hash of the professor’s password.
+- Passwords are never stored in plain text.
 
 #### Activity Table
 
@@ -135,8 +137,10 @@ Supports rate-limiting operations and participant analysis. Allows quick lookup 
 ## API Endpoints
 
 ### Authentication
+
 ```
 POST /api/auth/login
+POST /api/auth/signup
 ```
 Authenticates a professor and returns a session token.
 
