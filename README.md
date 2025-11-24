@@ -38,6 +38,8 @@ The application is accessible from any browser on desktop, mobile devices, or ta
 
 The application uses a minimal three-entity relational database design that satisfies all core functional requirements.
 
+![Continuous Feedback - ER Model](Screenshot%202025-11-24%20104103.png)
+
 ### Entity Relationship Overview
 
 **User** (Professor/Admin) - Represents the instructor creating and managing activities
