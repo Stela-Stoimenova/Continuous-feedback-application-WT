@@ -1,4 +1,6 @@
-module.export=(sequelize, DataTypes)=>{
+module.exports=(sequelize, DataTypes)=>{
+    
+
     const Activity= sequelize.define('Activity', {
         id:{
             type: DataTypes.UUID,
@@ -24,7 +26,7 @@ module.export=(sequelize, DataTypes)=>{
         }
     },{
         tableName: 'Activity', 
-        timestamp: true //because in migrations we use createdAt/updatedAt
+        timestamps: true //because in migrations we use createdAt/updatedAt
     });
 
     Activity.associate=(models)=>{
