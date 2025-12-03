@@ -7,14 +7,16 @@ module.exports = {
         type: Sequelize.UUID,
         defaultValue: Sequelize.literal('gen_random_uuid()'),
         primaryKey: true,
-        allowNull: false
+        allowNull: false,
+        unique: true
       },
 
       professor_id:{
         type: Sequelize.UUID,
         allowNull: false,
         references: {model: 'User', key: 'id'},
-        onDelete: 'CASCADE'
+        onDelete: 'CASCADE',
+        unique: true
       },
 
       access_code:{

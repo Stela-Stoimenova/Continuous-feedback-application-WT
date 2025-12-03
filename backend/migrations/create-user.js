@@ -7,7 +7,8 @@ module.exports = {
         type:Sequelize.UUID,
         defaultValue: Sequelize.literal('gen_random_uuid()'),
         primaryKey: true,
-        allowNull: false
+        allowNull: false,
+        unique: true
       },
 
       email:{

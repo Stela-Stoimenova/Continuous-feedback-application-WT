@@ -3,6 +3,7 @@ module.exports= (sequelize, DataTypes)=>{
         id:{
             type: DataTypes.UUID,
             primaryKey: true,
+            unique: true,
             defaultValue: sequelize.literal('gen_random_uuid()')
         },
         email:{
