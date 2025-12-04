@@ -1,23 +1,41 @@
 const express = require('express');
-const cors=require('cors');
-const app=express();
-const userRoutes = require('./routes/userRoutes');
-const activityRoutes = require('./routes/activityRoutes');
-const feedbackRoutes = require('./routes/feedbackRoutes');
-const {sequelize} = require('./models');
+const cors = require('cors');
+require('dotenv').config();
 
+const app = express();
+const { sequelize } = require('./models');
+
+// Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
-const authRoutes=require('./routes/authRoutes');
+
+// Routes
+const authRoutes = require('./routes/authRoutes');
 app.use('/auth', authRoutes);
-app.use('/users', userRoutes);
-app.use('/activities', activityRoutes);
-app.use('/feedbacks', feedbackRoutes);
 
-module.exports=app;
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+// Test route
+app.get('/', (req, res) => {
+    res.send("API is working!");
 });
+
+// Start server AFTER database connects
+sequelize.sync()
+    .then(() => {
+        console.log("Database synced successfully");
+
+        const PORT = process.env.PORT || 3000;
+        app.listen(PORT, () => {
+            console.log(`Server is running on port ${PORT}`);
+        });
+    })
+    .catch(err => {
+        console.error("Error syncing database:", err);
+    });
+
+    console.log('DB_USERNAME:', process.env.DB_USERNAME);
+console.log('DB_PASSORD:', process.env.DB_PASSWORD);
+console.log('DB_NAME:', process.env.DB_NAME);
+
+
+module.exports = app;
