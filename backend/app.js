@@ -1,34 +1,27 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+const { sequelize } = require('./models');
+
+const authRoutes = require('./routes/authRoutes');
+const activityRoutes = require('./routes/activityRoutes');
+const feedbackRoutes = require('./routes/feedbackRoutes');
 
 const app = express();
-const { sequelize } = require('./models');
-sequelize.sync()
-  .then(() => {
-    console.log("Database synced");
-    const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => console.log(`Server on port ${PORT}`));
-  })
-  .catch(err => {
-    console.error("Sequelize sync error:", err);
-  });
-
-// Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
-// Routes
-const authRoutes = require('./routes/authRoutes');
 app.use('/auth', authRoutes);
+app.use('/activities', activityRoutes);
+app.use('/feedbacks', feedbackRoutes);
 
-// Test route
-app.get('/', (req, res) => {
-    res.send("API is working!");
-});
+// sync DB
+sequelize.sync({ force: true }) // use force:true for dev to reset DB
+  .then(() => console.log('Database synced'))
+  .catch(err => console.error('Sequelize sync error:', err));
 
-
-
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
 
 module.exports = app;
