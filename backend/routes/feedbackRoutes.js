@@ -2,7 +2,10 @@ const express = require('express');
 const router = express.Router();
 const feedbackController = require('../controllers/feedbackController');
 
+// Submit feedback (students)
 router.post('/', feedbackController.submitFeedback);
-router.get('/:activityId', feedbackController.getFeedbackByActivity);
+
+// Get all feedbacks for an activity (professor)
+router.get('/:activityId', feedbackController.getFeedbacks);
 
 module.exports = router;
