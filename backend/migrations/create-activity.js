@@ -5,7 +5,7 @@ module.exports = {
     await queryInterface.createTable('Activity',{
       id:{
         type: Sequelize.UUID,
-        defaultValue: Sequelize.literal('gen_random_uuid()'),
+        defaultValue: Sequelize.UUID,
         primaryKey: true,
         allowNull: false,
         unique: true

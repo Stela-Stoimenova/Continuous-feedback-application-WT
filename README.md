@@ -139,8 +139,8 @@ Supports rate-limiting operations and participant analysis. Allows quick lookup 
 ### Authentication
 
 ```
-POST /api/auth/login
-POST /api/auth/signup
+POST /auth/login
+POST /auth/signup
 ```
 Authenticates a professor and returns a session token.
 
