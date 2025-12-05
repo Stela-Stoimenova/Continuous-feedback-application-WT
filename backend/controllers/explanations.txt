@@ -1,0 +1,5 @@
+A controller is a file that contains logic for handling requests
+including validation of inputs, interaction with the Database using the models folder
+it returns JSON response
+
+A controller is not directly connected to the client it just defines functions

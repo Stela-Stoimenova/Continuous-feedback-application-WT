@@ -1,0 +1,2 @@
+A model is your database structure created using Sequelize 
+Models can be considered as the tables 
