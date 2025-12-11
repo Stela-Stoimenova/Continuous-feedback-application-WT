@@ -1,0 +1,38 @@
+Since the project is Continuous Feedback Web App where:
+
+-Professors create feedback sessions
+-Students join via an access code
+-Students submit anonymous feedback (emotions: happy, bored, surprised, confused)
+-Backend: Node.js + Express + Sequelize ORM with SQLite (development)
+
+For the moment I implemented:
+
+-Express API with routes as described in the README
+-Sequelize models for User, Activity, Feedback
+-Basic endpoints for auth, activity and feedback operations
+
+I need:
+
+-full implementation of auth middleware (JWT, hashing, role checks)
+-validation/error handling on your routes
+-pagination or filtering for feedback fetches
+-tests for backend routes
+-real-time socket integration if referenced by README
+-proper deployment config including env variables
+
+MIGRATIONS
+PostgreSQL generates UUID using: gen_random_uuid()
+this requires the extension pgcrypto, which we can enable with a migration if needed
+The ENUM cleanup is mandatory because Sequelize creates a type like: enum_users_role
+if we drop the table without fropping the enum, it will remain in the DB -> error next migration
+
+MODELS 
+USER- id is an UUID primary key, automatically generated
+role is ENUM with allowed values
+when timestamps is true means that the Sequelize expects created_at and updatet_at
+A professor can have many activities
+belongsTo(models.User) → The professor who created the activity
+hasMany(models.Feedback) → Activity can have many feedback entries
+belongsTo(models.Activity) → Each feedback belongs to a specific activity
+createdAt: 'created_at' → Matches your migration
+updatedAt: false → Feedback doesn’t need to be updated, so no column required
