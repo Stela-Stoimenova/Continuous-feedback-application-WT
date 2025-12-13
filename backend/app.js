@@ -21,7 +21,7 @@ app.use('/feedbacks', feedbackRoutes);
 sequelize.sync({ alter: true })
   .then(() => {
     console.log('Database synced');
-    const PORT = process.env.PORT || 3000;
+    const PORT = process.env.PORT || 4321;
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
   .catch(err => {

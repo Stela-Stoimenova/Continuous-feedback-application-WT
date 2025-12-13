@@ -143,3 +143,60 @@ controller
 controller sends JSON response -> frontend consumes
 socket emits updates for real-time features 
 
+I added Service folder separated from the controller so i make the structure easier
+now controllers only handles request/response and services only handle business logic + DB
+it is easier to test services without HTTP and easier to change DB logic without touching controllers
+
+the middleware is a security checkpoint before a request reaches our controller:
+Request -> Middleware -> Controller -> response
+the middleware responds to the question "Is this user logged in?"
+if yea -> continue
+if no -> atop the request 
+
+JWT = JSON Web Token 
+when user logs in the backend creates a signed token, this token contains user info
+the frontend stores the token and every protected request sends Authorization: Bearer <token>
+Frontend
+   |
+   |  Authorization: Bearer TOKEN
+   |
+Express Route
+   |
+Auth Middleware  ← checks token
+   |
+Controller       ← uses req.user
+   |
+Service
+   |
+Model (Sequelize)
+   |
+PostgreSQL
+
+at the moment we have only authMiddleware which means any logged-in user can create activities
+but logically professor can create activities, admin maybe manage users, student should not create activities
+so we need a role check after authentification:
+Request
+ → Auth middleware (is user logged in?)
+ → Role middleware (is user allowed?)
+ → Controller
+
+Why do we need validation?
+at the moment we check manually fields in controller that logi is messy but adding validation middleware keeps controller clean
+returns clear error messages 
+and prevents bad data entering DB 
+Additionallywe need global error handling midleware because now every controller has try/catch
+the code is repeаting 
+
+feedback submission triggers socket event, professors see live updates, no DB changes needed
+| Layer      | Responsibility        |
+| ---------- | --------------------- |
+| Route      | URL mapping           |
+| Middleware | Security & validation |
+| Controller | HTTP handling         |
+| Service    | Business logic        |
+| Model      | Database              |
+| Socket     | Real-time updates     |
+
+
+Routes
+routes are traffic police: they decide where a request goes 
