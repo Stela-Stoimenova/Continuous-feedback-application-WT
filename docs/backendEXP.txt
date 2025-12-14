@@ -1,6 +1,17 @@
 BACKENDS OVERVIEW:
 Client (React frontend) -> Routes (Express) -> Controllers -> Services / Models (Sequelize) -> Database (PostgreSQL)
 
+backend/
+├─ controllers/       # Business logic for handling requests
+├─ models/            # Sequelize models matching your DB tables
+├─ migrations/        # Sequelize migrations to create DB schema
+├─ routes/            # Express routes mapping URLs to controllers
+├─ middleware/        # JWT authentication
+├─ config/            # Sequelize DB configuration
+├─ app.js             # Main Express app setup
+├─ .env               # Environment variables
+
+
 extra features are:
 -middleware: JWT authentification, validation, error handling
 -sockets:real-time feedback
