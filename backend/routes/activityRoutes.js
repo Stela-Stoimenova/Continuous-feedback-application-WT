@@ -1,15 +1,37 @@
 const express = require('express');
 const router = express.Router();
+
 const activityController = require('../controllers/activityController');
-const authMiddleware = require('../middleware/authMiddleware');
+const auth = require('../middleware/authMiddleware');
+const role = require('../middleware/roleMiddleware');
+const validate = require('../middleware/validateMiddleware');
+const { body } = require('express-validator');
 
-// Create a new activity (professor only)
-router.post('/', authMiddleware, activityController.createActivity);
+// Validation rules
+const createActivityValidation = [
+  body('access_code').isLength({ min: 4, max: 10 }),
+  body('starts_at').isISO8601(),
+  body('ends_at').isISO8601()
+];
 
-// Get all activities for professor
-router.get('/', authMiddleware, activityController.getActivities);
+// Create activity (PROFESSOR only)
+router.post(
+  '/',
+  auth,
+  role(['PROFESSOR']),
+  validate(createActivityValidation),
+  activityController.createActivity
+);
 
-// Get activity by access code (student access)
+// Get professor activities
+router.get(
+  '/',
+  auth,
+  role(['PROFESSOR']),
+  activityController.getActivities
+);
+
+// Get activity by access code (public)
 router.get('/:code', activityController.getActivityByCode);
 
 module.exports = router;

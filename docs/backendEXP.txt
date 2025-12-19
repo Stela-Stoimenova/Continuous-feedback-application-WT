@@ -1,0 +1,213 @@
+BACKENDS OVERVIEW:
+Client (React frontend) -> Routes (Express) -> Controllers -> Services / Models (Sequelize) -> Database (PostgreSQL)
+
+backend/
+├─ controllers/       # Business logic for handling requests
+├─ models/            # Sequelize models matching your DB tables
+├─ migrations/        # Sequelize migrations to create DB schema
+├─ routes/            # Express routes mapping URLs to controllers
+├─ middleware/        # JWT authentication
+├─ config/            # Sequelize DB configuration
+├─ app.js             # Main Express app setup
+├─ .env               # Environment variables
+
+
+extra features are:
+-middleware: JWT authentification, validation, error handling
+-sockets:real-time feedback
+-config / .env: environment variables, DB config, secrets
+-migrations: define tables in PostgreSQL
+-models: Sequelize models 
+-app.js:Ties everything together and starts the server
+
+Since the project is Continuous Feedback Web App where:
+
+-Professors create feedback sessions
+-Students join via an access code
+-Students submit anonymous feedback (emotions: happy, bored, surprised, confused)
+-Backend: Node.js + Express + Sequelize ORM with SQLite (development)
+
+For the moment I implemented:
+
+-Express API with routes as described in the README
+-Sequelize models for User, Activity, Feedback
+-Basic endpoints for auth, activity and feedback operations
+
+I need:
+
+-full implementation of auth middleware (JWT, hashing, role checks)
+-validation/error handling on your routes
+-pagination or filtering for feedback fetches
+-tests for backend routes
+-real-time socket integration if referenced by README
+-proper deployment config including env variables
+
+MIGRATIONS
+PostgreSQL generates UUID using: gen_random_uuid()
+this requires the extension pgcrypto, which we can enable with a migration if needed
+The ENUM cleanup is mandatory because Sequelize creates a type like: enum_users_role
+if we drop the table without fropping the enum, it will remain in the DB -> error next migration
+
+MODELS 
+USER- id is an UUID primary key, automatically generated
+role is ENUM with allowed values
+when timestamps is true means that the Sequelize expects created_at and updatet_at
+A professor can have many activities
+belongsTo(models.User) → The professor who created the activity
+hasMany(models.Feedback) → Activity can have many feedback entries
+belongsTo(models.Activity) → Each feedback belongs to a specific activity
+createdAt: 'created_at' → Matches your migration
+updatedAt: false → Feedback doesn’t need to be updated, so no column required
+
+CONTROLLERS
+createActivity(req, res)
+
+-Gets access_code, starts_at, ends_at from request body
+-Gets professor_id from req.user (JWT authentication)
+-Checks required fields → returns 400 if missing
+-Checks if access_code already exists → 400 if yes
+-Creates new activity in DB → 201 Created
+-Error → 500 Internal Server Error
+Key Logic:
+-Ensures only professors can create activities, avoids duplicate access codes, saves activity in DB.
+
+getActivities(req, res)
+
+-Gets professor_id from JWT
+-Queries all activities where professor_id matches
+-Returns array of activities
+Key Logic:
+-Professors only see their own activities.
+
+getActivityByCode(req, res)
+
+-Gets code from URL params
+-Queries DB for activity with that access code
+-Returns activity or 404 if not found
+Key Logic:
+-Students can join activities by code, or professors can fetch activity details.
+
+the user controller handles sign-up and login, uses bcrypt to hash passwords (never store raw password),
+uses JWT to generate a token for authenticated requests 
+
+signUp(req, res)
+
+-Get email, name, password from body
+-Check if user exists → 400 if yes
+-Hash password → password_hash
+-Create user in DB with role 'PROFESSOR'
+-Create JWT token → expires in 1 hour
+-Return token + user info
+Key Logic:
+-Securely registers a user, immediately gives a token for logged-in state.
+
+login(req, res)
+
+-Get email/password from body
+-Find user → 400 if not found
+-Compare password with bcrypt → 401 if wrong
+-Generate JWT token → return token + user info
+Key Logic:
+-Authenticates existing users, securely validates passwords.
+
+submitFeedback(req, res)
+
+-Get activity_id, emotion_type, anonymous_session_id from body
+-Check activity exists → 404 if not
+-Check emotion_type in [1,2,3,4] → 400 if invalid
+-Create feedback in DB → 201 Created
+Key Logic:
+-Lets a student submit anonymous feedback linked to a specific activity.
+
+getFeedbacks(req, res)
+
+-Get activityId from URL params
+-Query all feedback for this activity
+-Return array of feedbacks
+Key Logic:
+-Professors can see feedback for their activities.
+
+Controllers do not directly write SQL - they use Sequelize models.
+Sequelize models know table structure (migrations) and handle Queries
+Controllers handle request validation, logic and responses
+Models handle database CRUD
+
+For the routes we know
+Maps HTTP methods + paths -> controller functions
+Can apply middleware (auth, validation)
+keeps the controllers cleanup
+
+the app.js loads all the routes, parses JSON requests, starts server, could also integrate sockets for real-time updates
+
+the sockets are optional real-time feedback 
+feedback can be emitted vis socket.io whenever someone submits
+frontend listens to updates in real-time backend doesnt need to store anything extra
+
+MIGRATIONS 
+define table structure in DB and ensure that models match tables
+
+How it all work together:
+Frontend sends HTTP request, after express route maps request - >controller
+middlewarechecks auth / validation, controller calls Sequelize model -> interacts with PostgreSQL,
+model returns data ->controller formats response
+controller 
+controller sends JSON response -> frontend consumes
+socket emits updates for real-time features 
+
+I added Service folder separated from the controller so i make the structure easier
+now controllers only handles request/response and services only handle business logic + DB
+it is easier to test services without HTTP and easier to change DB logic without touching controllers
+
+the middleware is a security checkpoint before a request reaches our controller:
+Request -> Middleware -> Controller -> response
+the middleware responds to the question "Is this user logged in?"
+if yea -> continue
+if no -> atop the request 
+
+JWT = JSON Web Token 
+when user logs in the backend creates a signed token, this token contains user info
+the frontend stores the token and every protected request sends Authorization: Bearer <token>
+Frontend
+   |
+   |  Authorization: Bearer TOKEN
+   |
+Express Route
+   |
+Auth Middleware  ← checks token
+   |
+Controller       ← uses req.user
+   |
+Service
+   |
+Model (Sequelize)
+   |
+PostgreSQL
+
+at the moment we have only authMiddleware which means any logged-in user can create activities
+but logically professor can create activities, admin maybe manage users, student should not create activities
+so we need a role check after authentification:
+Request
+ → Auth middleware (is user logged in?)
+ → Role middleware (is user allowed?)
+ → Controller
+
+Why do we need validation?
+at the moment we check manually fields in controller that logi is messy but adding validation middleware keeps controller clean
+returns clear error messages 
+and prevents bad data entering DB 
+Additionallywe need global error handling midleware because now every controller has try/catch
+the code is repeаting 
+
+feedback submission triggers socket event, professors see live updates, no DB changes needed
+| Layer      | Responsibility        |
+| ---------- | --------------------- |
+| Route      | URL mapping           |
+| Middleware | Security & validation |
+| Controller | HTTP handling         |
+| Service    | Business logic        |
+| Model      | Database              |
+| Socket     | Real-time updates     |
+
+
+Routes
+routes are traffic police: they decide where a request goes 

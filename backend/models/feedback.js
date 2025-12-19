@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  const Feedback = sequelize.define('Feedback', {
+  const Feedback = sequelize.define('feedbacks', {
     id: {
       type: DataTypes.UUID,
       primaryKey: true,
@@ -19,12 +19,14 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true
     }
   }, {
-    tableName: 'Feedback',
-    timestamps: true
+    tableName: 'feedbacks',
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: false
   });
 
   Feedback.associate = (models) => {
-    Feedback.belongsTo(models.Activity, { foreignKey: 'activity_id' });
+    Feedback.belongsTo(models.Activity, { foreignKey: 'activity_id', as: 'activity' });
   };
 
   return Feedback;
