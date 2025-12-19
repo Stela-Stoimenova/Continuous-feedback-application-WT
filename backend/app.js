@@ -18,10 +18,10 @@ app.use('/auth', authRoutes);
 app.use('/activities', activityRoutes);
 app.use('/feedbacks', feedbackRoutes);
 
-sequelize.sync({ alter: true })
+sequelize.sync()
   .then(() => {
     console.log('Database synced');
-    const PORT = process.env.PORT || 4321;
+    const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
   .catch(err => {

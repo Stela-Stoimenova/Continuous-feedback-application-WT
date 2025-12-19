@@ -13,7 +13,7 @@ module.exports = {
 
     const user = await User.create({ email, name, password_hash, role: 'PROFESSOR' });
 
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
 
     return { token, user };
   },
@@ -25,7 +25,7 @@ module.exports = {
     const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid) throw new Error('Invalid email or password');
 
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
 
     return { token, user };
   }

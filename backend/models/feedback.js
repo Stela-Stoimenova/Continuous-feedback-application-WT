@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  const Feedback = sequelize.define('feedbacks', {
+  const Feedback = sequelize.define('Feedback', {
     id: {
       type: DataTypes.UUID,
       primaryKey: true,

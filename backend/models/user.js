@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  const User = sequelize.define('users', {
+  const User = sequelize.define('User', {
     id: {
       type: DataTypes.UUID,
       primaryKey: true,
@@ -24,7 +24,9 @@ module.exports = (sequelize, DataTypes) => {
     }
   }, {
     tableName: 'users',
-    timestamps: true
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
   });
 
   User.associate = (models) => {

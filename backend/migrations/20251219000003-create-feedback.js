@@ -21,17 +21,13 @@ module.exports = {
 
       emotion_type: {
         type: Sequelize.SMALLINT,
-        allowNull: false,
-        validate: {
-          min: 1,
-          max: 4
-        }
+        allowNull: false
       },
 
       created_at: {
         type: Sequelize.DATE,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
-        allowNull: false
+        allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       },
 
       anonymous_session_id: {
