@@ -1,13 +1,13 @@
-/**
- * Generate and manage anonymous session IDs
- * Session ID is unique per device per activity
- */
+// anonymous session ID management
+// generates and manages unique session identifiers for anonymous student feedback
+// each session ID is unique per device and per activity
+// stored in sessionStorage (persists only while browser tab is open)
+// this allows counting unique participants without identifying individuals
 
 const STORAGE_KEY_PREFIX = 'feedback_session_'
 
-/**
- * Generate a random session ID
- */
+// generate a cryptographically random session ID
+// composed of timestamp + two random strings for uniqueness
 function generateSessionId() {
   const timestamp = Date.now().toString(36)
   const randomPart = Math.random().toString(36).substring(2, 15)
@@ -15,45 +15,43 @@ function generateSessionId() {
   return `${timestamp}-${randomPart}-${randomPart2}`
 }
 
-/**
- * Get or create session ID for a specific activity
- * @param {string} activityId - The activity ID
- * @returns {string} The session ID
- */
+// get or create a session ID for a specific activity
+// if one exists, return it; otherwise generate and store a new one
+// this ensures same student uses same ID throughout the session
 export function getSessionId(activityId) {
   const storageKey = `${STORAGE_KEY_PREFIX}${activityId}`
   
-  // Check if session ID exists for this activity
+  // check if session ID already exists for this activity
   let sessionId = sessionStorage.getItem(storageKey)
   
   if (!sessionId) {
-    // Generate new session ID
+    // generate new session ID if it doesn't exist
     sessionId = generateSessionId()
+    // store it in sessionStorage for this activity
     sessionStorage.setItem(storageKey, sessionId)
   }
   
   return sessionId
 }
 
-/**
- * Clear session ID for a specific activity
- * @param {string} activityId - The activity ID
- */
+// clear the session ID for a specific activity
 export function clearSessionId(activityId) {
   const storageKey = `${STORAGE_KEY_PREFIX}${activityId}`
   sessionStorage.removeItem(storageKey)
 }
 
-/**
- * Clear all session IDs
- */
+// clear all session IDs from storage
+// removes all feedback session IDs
 export function clearAllSessionIds() {
   const keys = Object.keys(sessionStorage)
+  // filter only keys that belong to feedback sessions
   keys.forEach(key => {
     if (key.startsWith(STORAGE_KEY_PREFIX)) {
       sessionStorage.removeItem(key)
     }
   })
 }
+
+
 
 

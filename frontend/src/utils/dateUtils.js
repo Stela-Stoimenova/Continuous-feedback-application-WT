@@ -1,7 +1,9 @@
-/**
- * Date utility functions
- */
+// date and time utility functions
+// provides consistent date/time formatting and activity status checking
+// uses Intl.DateTimeFormat API for internationalization
 
+// format date string to display both date and time
+// example: "Dec 5, 2024, 02:30 PM"
 export function formatDateTime(dateString) {
   const date = new Date(dateString)
   return new Intl.DateTimeFormat('en-US', {
@@ -13,6 +15,8 @@ export function formatDateTime(dateString) {
   }).format(date)
 }
 
+// format date string to display only the date
+// example: "Dec 5, 2024"
 export function formatDate(dateString) {
   const date = new Date(dateString)
   return new Intl.DateTimeFormat('en-US', {
@@ -22,6 +26,8 @@ export function formatDate(dateString) {
   }).format(date)
 }
 
+// format date string to display only the time
+// example: "02:30 PM"
 export function formatTime(dateString) {
   const date = new Date(dateString)
   return new Intl.DateTimeFormat('en-US', {
@@ -30,6 +36,8 @@ export function formatTime(dateString) {
   }).format(date)
 }
 
+// check if an activity is currently active
+// returns true if current time is between start and end times
 export function isActivityActive(startsAt, endsAt) {
   const now = new Date()
   const start = new Date(startsAt)
@@ -37,6 +45,8 @@ export function isActivityActive(startsAt, endsAt) {
   return now >= start && now <= end
 }
 
+// get the current status of an activity
+// returns: 'upcoming', 'active', or 'ended'
 export function getActivityStatus(startsAt, endsAt) {
   const now = new Date()
   const start = new Date(startsAt)
@@ -47,6 +57,8 @@ export function getActivityStatus(startsAt, endsAt) {
   return 'active'
 }
 
+// format date for HTML datetime-local input
+// converts date to "YYYY-MM-DDTHH:MM" format required by HTML5 inputs
 export function formatDateTimeLocal(dateString) {
   const date = new Date(dateString)
   const year = date.getFullYear()
@@ -56,5 +68,7 @@ export function formatDateTimeLocal(dateString) {
   const minutes = String(date.getMinutes()).padStart(2, '0')
   return `${year}-${month}-${day}T${hours}:${minutes}`
 }
+
+
 
 
