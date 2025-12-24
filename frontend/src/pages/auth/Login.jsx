@@ -1,4 +1,3 @@
-// Login page
 // Handles professor authentication via `useAuth().login`, then navigates to activities.
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'

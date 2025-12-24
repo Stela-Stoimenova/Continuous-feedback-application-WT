@@ -1,7 +1,3 @@
-/**
- * Date utility functions
- */
-
 export function formatDateTime(dateString) {
   const date = new Date(dateString)
   return new Intl.DateTimeFormat('en-US', {

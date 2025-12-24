@@ -1,4 +1,3 @@
-// Activities page
 // Lists professor-owned activities and shows status badges.
 // Fetches via `activityAPI.getAll()` and uses date utils for status.
 import { useState, useEffect } from 'react'

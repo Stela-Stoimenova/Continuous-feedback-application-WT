@@ -1,4 +1,3 @@
-// ProfessorLayout
 // Shell layout for professor pages. Renders Navbar and tabbed navigation,
 // with nested routes shown via <Outlet/>.
 import { Outlet, Link, useLocation } from 'react-router-dom'

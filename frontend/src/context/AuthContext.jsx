@@ -1,4 +1,3 @@
-// AuthContext
 // Provides authentication state and actions to the app.
 // Persists JWT + user in localStorage and exposes `login`, `signup`, `logout`.
 import { createContext, useContext, useState, useEffect } from 'react'

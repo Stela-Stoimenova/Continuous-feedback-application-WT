@@ -1,7 +1,3 @@
-/**
- * Emoticon configuration for feedback
- */
-
 export const EMOTIONS = [
   { 
     type: 'happy', 

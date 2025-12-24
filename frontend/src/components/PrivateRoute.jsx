@@ -1,4 +1,3 @@
-// PrivateRoute
 // Guards protected routes: shows a loading state while auth initializes,
 // then either renders children if authenticated or redirects to /login.
 import { Navigate } from 'react-router-dom'

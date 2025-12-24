@@ -1,4 +1,3 @@
-// API service
 // Configures Axios client with baseURL and JSON headers.
 // Attaches JWT from localStorage via request interceptor.
 // Exposes typed API helpers for auth, activities, and feedback.
