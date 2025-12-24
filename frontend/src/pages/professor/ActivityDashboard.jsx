@@ -1,3 +1,6 @@
+// ActivityDashboard page
+// Displays charts, stats, and recent feedback for a selected activity.
+// Fetches data via `activityAPI.getAll()` and `feedbackAPI.getByActivity(id)`.
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { activityAPI, feedbackAPI } from '../../services/api'

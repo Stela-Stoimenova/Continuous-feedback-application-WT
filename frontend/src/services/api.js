@@ -1,3 +1,7 @@
+// API service
+// Configures Axios client with baseURL and JSON headers.
+// Attaches JWT from localStorage via request interceptor.
+// Exposes typed API helpers for auth, activities, and feedback.
 import axios from 'axios'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'

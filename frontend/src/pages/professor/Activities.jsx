@@ -1,3 +1,6 @@
+// Activities page
+// Lists professor-owned activities and shows status badges.
+// Fetches via `activityAPI.getAll()` and uses date utils for status.
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { activityAPI } from '../../services/api'
