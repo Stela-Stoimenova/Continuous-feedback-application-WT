@@ -1,3 +1,4 @@
+require('dotenv').config();
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -6,7 +7,12 @@ const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
 const config = require(__dirname + '/../config/config.js')[env];
 
-const sequelize = new Sequelize(config);
+const sequelize = new Sequelize(
+  config.database,
+  config.username,
+  config.password,
+  config
+);
 const db = {};
 
 fs.readdirSync(__dirname)

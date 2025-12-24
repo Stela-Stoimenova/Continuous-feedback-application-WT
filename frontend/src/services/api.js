@@ -3,6 +3,9 @@
 // provides organized endpoints for authentication, activities, and feedback
 // automatically attaches JWT tokens to authenticated requests
 
+// Configures Axios client with baseURL and JSON headers.
+// Attaches JWT from localStorage via request interceptor.
+// Exposes typed API helpers for auth, activities, and feedback.
 import axios from 'axios'
 
 // base URL for all API requests

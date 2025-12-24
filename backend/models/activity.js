@@ -23,13 +23,15 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false
     }
   }, {
-    tableName: 'Activity',
-    timestamps: true
+    tableName: 'activities',
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
   });
 
   Activity.associate = (models) => {
-    Activity.belongsTo(models.User, { foreignKey: 'professor_id' });
-    Activity.hasMany(models.Feedback, { foreignKey: 'activity_id' });
+    Activity.belongsTo(models.User, { foreignKey: 'professor_id', as: 'professor' });
+    Activity.hasMany(models.Feedback, { foreignKey: 'activity_id', as: 'feedbacks' });
   };
 
   return Activity;
