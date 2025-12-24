@@ -1,3 +1,8 @@
+/**
+ * Auth Routes
+ * POST /auth/signup -> create account and return JWT
+ * POST /auth/login  -> authenticate and return JWT
+ */
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');

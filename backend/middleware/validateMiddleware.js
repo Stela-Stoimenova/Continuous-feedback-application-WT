@@ -1,3 +1,8 @@
+/**
+ * Request Validation Middleware
+ * Runs an array of `express-validator` checks and returns 400 with errors if any fail.
+ * Usage: `validate([ body('field').isString() ])` placed before the controller.
+ */
 const { validationResult } = require('express-validator');
 
 module.exports = (validations) => {
