@@ -16,6 +16,14 @@ module.exports = {
       }
 
       const feedback = await Feedback.create({ activity_id, emotion_type, anonymous_session_id });
+      
+      // emit socket.io event after creating feedback
+      const io = req.app.get('io');
+      io.to(activity_id.toString()).emit('new-feedback', {
+        feedback: feedback,
+        timestamp: new Date()
+      });
+      
       return res.status(201).json({ feedback });
     } catch (err) {
       console.error(err);
