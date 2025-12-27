@@ -1,19 +1,8 @@
-// anonymous session ID management
-// generates and manages unique session identifiers for anonymous student feedback
-// each session ID is unique per device and per activity
-// stored in sessionStorage (persists only while browser tab is open)
-// this allows counting unique participants without identifying individuals
+// Anonymous session ID management. Stores per-activity IDs in sessionStorage for tab-lifetime uniqueness.
 
 const STORAGE_KEY_PREFIX = 'feedback_session_'
 
-// generate a cryptographically random session ID
-// composed of timestamp + two random strings for uniqueness
-//Generate and manage anonymous session IDs
-//Session ID is unique per device per activity
-
-const STORAGE_KEY_PREFIX = 'feedback_session_'
-
-//Generate a random session ID
+// Generate a random session ID
 
 function generateSessionId() {
   const timestamp = Date.now().toString(36)

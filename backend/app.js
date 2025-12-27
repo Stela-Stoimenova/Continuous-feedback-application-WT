@@ -6,6 +6,7 @@ const { sequelize } = require('./models');
 const authRoutes = require('./routes/authRoutes');
 const activityRoutes = require('./routes/activityRoutes');
 const feedbackRoutes = require('./routes/feedbackRoutes');
+const quoteRoutes = require('./routes/quoteRoutes');
 
 const app = express();
 app.use(express.json());
@@ -17,6 +18,7 @@ app.get('/', (req, res) => res.json({ message: 'Server running' }));
 app.use('/auth', authRoutes);
 app.use('/activities', activityRoutes);
 app.use('/feedbacks', feedbackRoutes);
+app.use('/api', quoteRoutes);
 
 sequelize.sync()
   .then(() => {
