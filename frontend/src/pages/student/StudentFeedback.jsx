@@ -1,3 +1,5 @@
+// Students submit anonymous emoticon feedback for an activity.
+// Generates a session ID per activity and shows status based on timing.
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { activityAPI, feedbackAPI } from '../../services/api'
@@ -256,5 +258,7 @@ function StudentFeedback() {
 }
 
 export default StudentFeedback
+
+
 
 

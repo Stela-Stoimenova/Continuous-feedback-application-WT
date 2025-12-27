@@ -1,3 +1,4 @@
+// Students enter an access code to find an activity and navigate to its feedback page.
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { activityAPI } from '../../services/api'
@@ -121,5 +122,7 @@ function StudentJoin() {
 }
 
 export default StudentJoin
+
+
 
 

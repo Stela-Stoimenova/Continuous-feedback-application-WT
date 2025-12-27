@@ -23,12 +23,17 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false
     }
   }, {
-    tableName: 'User',
-    timestamps: true
+    tableName: 'users',
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
   });
 
   User.associate = (models) => {
-    User.hasMany(models.Activity, { foreignKey: 'professor_id' });
+    User.hasMany(models.Activity, {
+      foreignKey: 'professor_id',
+      as: 'activities'
+    });
   };
 
   return User;

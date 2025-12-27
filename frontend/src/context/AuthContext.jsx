@@ -1,3 +1,5 @@
+// Provides authentication state and actions to the app.
+// Persists JWT + user in localStorage and exposes `login`, `signup`, `logout`.
 import { createContext, useContext, useState, useEffect } from 'react'
 import { authAPI } from '../services/api'
 
@@ -20,6 +22,7 @@ export function AuthProvider({ children }) {
     setLoading(false)
   }, [])
 
+  // Authenticate and store token/user
   const login = async (email, password) => {
     try {
       const response = await authAPI.login({ email, password })
@@ -40,6 +43,7 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // Create account and store token/user
   const signup = async (name, email, password) => {
     try {
       const response = await authAPI.signup({ name, email, password })
@@ -60,6 +64,7 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // Clear local auth state
   const logout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
@@ -87,5 +92,7 @@ export function useAuth() {
   }
   return context
 }
+
+
 
 

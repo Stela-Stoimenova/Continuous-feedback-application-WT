@@ -1,3 +1,5 @@
+// Displays app title, the user's name, and a logout button.
+// Assumes `AuthProvider` has set `user` and `logout` in context.
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { LogOut, Activity } from 'lucide-react'
@@ -37,5 +39,7 @@ function Navbar() {
 }
 
 export default Navbar
+
+
 
 

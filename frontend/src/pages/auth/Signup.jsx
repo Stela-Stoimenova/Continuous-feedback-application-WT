@@ -1,3 +1,4 @@
+// Creates a professor account via `useAuth().signup`, then navigates to activities.
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
