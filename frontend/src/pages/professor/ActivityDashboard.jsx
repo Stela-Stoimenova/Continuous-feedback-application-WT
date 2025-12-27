@@ -269,7 +269,7 @@ function ActivityDashboard() {
                     <span className="font-medium text-gray-900">{emotion.label}</span>
                   </div>
                   <span className="text-sm text-gray-500">
-                    {new Date(feedback.createdAt).toLocaleTimeString()}
+                    {new Date(feedback.created_at || feedback.createdAt).toLocaleTimeString()}
                   </span>
                 </div>
               )
