@@ -1,21 +1,16 @@
-const { Feedback, Activity } = require('../models');
 
-// Submit feedback
+// Handles anonymous feedback submission and professor feedback retrieval via `feedbackService`.
+
+const feedbackService = require('../services/feedbackService');
+
 module.exports = {
+  
+  //Submit feedback for an activity.
+  // Body: { activity_id, emotion_type, anonymous_session_id }
+  // Returns: 201 with created `feedback` or 400 on validation/service errors.
   async submitFeedback(req, res) {
     try {
-      const { activity_id, emotion_type, anonymous_session_id } = req.body;
-
-      // Check activity exists
-      const activity = await Activity.findByPk(activity_id);
-      if (!activity) return res.status(404).json({ message: 'Activity not found' });
-
-      // Check emotion_type
-      if (![1, 2, 3, 4].includes(emotion_type)) {
-        return res.status(400).json({ message: 'Invalid emotion type' });
-      }
-
-      const feedback = await Feedback.create({ activity_id, emotion_type, anonymous_session_id });
+      const feedback = await feedbackService.submitFeedback(req.body);
       
       // emit socket.io event after creating feedback
       const io = req.app.get('io');
@@ -26,20 +21,19 @@ module.exports = {
       
       return res.status(201).json({ feedback });
     } catch (err) {
-      console.error(err);
-      return res.status(500).json({ message: 'Internal server error' });
+      return res.status(400).json({ message: err.message });
     }
   },
 
-  // Get feedbacks for a specific activity
+  // List feedbacks for a given activity (professor-only route).
+  // Path param: `activityId`
+  // Returns: 200 with `feedbacks` array or 500 on unexpected errors.
   async getFeedbacks(req, res) {
     try {
-      const { activityId } = req.params;
-      const feedbacks = await Feedback.findAll({ where: { activity_id: activityId } });
+      const feedbacks = await feedbackService.getFeedbacks(req.params.activityId);
       return res.status(200).json({ feedbacks });
     } catch (err) {
-      console.error(err);
-      return res.status(500).json({ message: 'Internal server error' });
+      return res.status(500).json({ message: err.message });
     }
   }
 };

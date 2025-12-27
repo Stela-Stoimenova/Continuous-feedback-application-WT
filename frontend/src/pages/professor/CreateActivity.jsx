@@ -1,3 +1,5 @@
+// Professors create a new activity by setting access code and time range.
+// Submits to `activityAPI.create` and redirects to activities on success.
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { activityAPI } from '../../services/api'

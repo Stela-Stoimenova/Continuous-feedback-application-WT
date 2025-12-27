@@ -1,45 +1,36 @@
-const { User } = require('../models');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'secret_key';
+// Maps HTTP requests to `authService` for signup/login.
+// Does not store sessions; returns JWT and public user fields.
+
+const authService = require('../services/authService');
 
 module.exports = {
+  
+  //Sign up a new professor account.
+  // Body: { email, name, password }
+  // Returns: 201 with { token, user } or 400 on validation/conflict.
   async signUp(req, res) {
     try {
       const { email, name, password } = req.body;
-
-      const existingUser = await User.findOne({ where: { email } });
-      if (existingUser) return res.status(400).json({ message: 'User already exists' });
-
-      const password_hash = await bcrypt.hash(password, 10);
-
-      const user = await User.create({ email, name, password_hash, role: 'PROFESSOR' });
-
-      const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '1h' });
+      const { token, user } = await authService.signUp({ email, name, password });
 
       return res.status(201).json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
     } catch (err) {
-      console.error(err);
-      return res.status(500).json({ message: 'Internal server error' });
+      return res.status(400).json({ message: err.message });
     }
   },
 
+  //Log in an existing account.
+  //Body: { email, password }
+  //Returns: 200 with { token, user } or 400 on invalid credentials.
   async login(req, res) {
     try {
       const { email, password } = req.body;
-      const user = await User.findOne({ where: { email } });
-      if (!user) return res.status(400).json({ message: 'Invalid email' });
-
-      const valid = await bcrypt.compare(password, user.password_hash);
-      if (!valid) return res.status(401).json({ message: 'Invalid password' });
-
-      const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '1h' });
+      const { token, user } = await authService.login({ email, password });
 
       return res.status(200).json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
     } catch (err) {
-      console.error(err);
-      return res.status(500).json({ message: 'Internal server error' });
+      return res.status(400).json({ message: err.message });
     }
   }
 };
