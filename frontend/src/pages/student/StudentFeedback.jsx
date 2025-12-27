@@ -25,14 +25,16 @@ function StudentFeedback() {
 
   const fetchActivity = async () => {
     try {
-      // activityId here is the access code passed from StudentJoin
-      const response = await activityAPI.getByCode(activityId)
-      const found = response.data.activity
+      const response = await activityAPI.getAll()
+      const found = response.data.activities?.find(a => a.id === activityId)
+      
       if (!found) {
+        // Try to get by code (for students who just joined)
         setError('Activity not found')
         setLoading(false)
         return
       }
+      
       setActivity(found)
     } catch (err) {
       setError('Failed to load activity')
@@ -43,10 +45,6 @@ function StudentFeedback() {
 
   const handleEmotionClick = async (emotionValue) => {
     if (submitting) return
-    if (!activity?.id) {
-      setError('Activity not loaded yet. Please try again in a moment.')
-      return
-    }
 
     setSubmitting(true)
     setError('')
@@ -55,7 +53,7 @@ function StudentFeedback() {
       const sessionId = getSessionId(activityId)
       
       await feedbackAPI.submit({
-        activity_id: activity.id,
+        activity_id: activityId,
         emotion_type: emotionValue,
         anonymous_session_id: sessionId
       })

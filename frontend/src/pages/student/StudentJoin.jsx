@@ -27,8 +27,8 @@ function StudentJoin() {
       const activity = response.data.activity
 
       if (activity) {
-        // Pass access code through the URL; StudentFeedback will fetch by code (public route)
-        navigate(`/student/feedback/${activity.access_code}`)
+        // Navigate to feedback page
+        navigate(`/student/feedback/${activity.id}`)
       }
     } catch (err) {
       if (err.response?.status === 404) {

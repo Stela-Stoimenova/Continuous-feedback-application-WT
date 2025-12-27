@@ -3,7 +3,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import Navbar from '../../components/Navbar'
 import { Plus, List } from 'lucide-react'
-import  QuoteBanner from '../../components/QuoteBanner'
 
 function ProfessorLayout() {
   const location = useLocation()
@@ -13,11 +12,6 @@ function ProfessorLayout() {
       <Navbar />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-        <div className= "mb-6">
-          <QuoteBanner />
-        </div>
-
         {/* Navigation tabs */}
         <div className="mb-8 flex space-x-4 border-b border-gray-200">
           <Link
