@@ -6,15 +6,8 @@
 
 const STORAGE_KEY_PREFIX = 'feedback_session_'
 
-// generate a cryptographically random session ID
-// composed of timestamp + two random strings for uniqueness
-//Generate and manage anonymous session IDs
-//Session ID is unique per device per activity
-
-const STORAGE_KEY_PREFIX = 'feedback_session_'
-
-//Generate a random session ID
-
+// Generate a cryptographically random session ID
+// Composed of timestamp + two random strings for uniqueness
 function generateSessionId() {
   const timestamp = Date.now().toString(36)
   const randomPart = Math.random().toString(36).substring(2, 15)
