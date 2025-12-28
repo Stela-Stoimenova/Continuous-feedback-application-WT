@@ -2,6 +2,8 @@
 
 const STORAGE_KEY_PREFIX = 'feedback_session_'
 
+// Generate a cryptographically random session ID
+// Composed of timestamp + two random strings for uniqueness
 // Generate a random session ID
 
 function generateSessionId() {

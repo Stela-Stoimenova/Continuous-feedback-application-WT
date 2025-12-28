@@ -7,6 +7,7 @@ import { formatDateTime, getActivityStatus } from '../../utils/dateUtils'
 import { EMOTIONS, getEmotionById } from '../../utils/emoticons'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { Activity, Users, MessageSquare, Calendar, Clock, TrendingUp, AlertCircle } from 'lucide-react'
+import socketService from '../../services/socket'
 
 function ActivityDashboard() {
   const { id } = useParams()
@@ -16,7 +17,28 @@ function ActivityDashboard() {
   const [error, setError] = useState('')
 
   useEffect(() => {
+    // connect to socket.io when component mounts
+    socketService.connect()
+    
+    // fetch initial data
     fetchData()
+    
+    // join activity room
+    socketService.joinActivity(id)
+    
+    // listen for new feedback
+    socketService.onNewFeedback((data) => {
+      console.log('New feedback received!', data)
+      // add new feedback to list
+      setFeedbacks(prev => [...prev, data.feedback])
+    })
+    
+    // cleanup when component unmounts
+    return () => {
+      socketService.offNewFeedback()
+      socketService.leaveActivity(id)
+      socketService.disconnect()
+    }
   }, [id])
 
   const fetchData = async () => {
