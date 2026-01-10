@@ -3,11 +3,16 @@
 ## Overview
 This application enables professors to run timed feedback sessions and students to submit anonymous emoticon feedback in real time.
 
-- Frontend (React + Vite) runs on port 3001
-- Backend (Express + Sequelize + PostgreSQL) runs on port 3000
-- Frontend proxies API calls to backend to avoid CORS
+**Deployment Configuration:**
+- **Production**: Frontend and backend run on the same server/port (e.g., port 3000)
+- **Development**: Frontend (Vite) on port 5173, Backend (Express) on port 3000
+- Backend serves static frontend files from `backend/dist/`
+- All API routes use `/api` prefix
+- Real-time updates via Socket.io
 
 ## How To Start
+
+### Development Mode
 
 1. Backend (requires PostgreSQL running locally and a populated `.env`):
    - Env file: [backend/.env](../backend/.env)
@@ -19,17 +24,36 @@ This application enables professors to run timed feedback sessions and students 
      npm run migrate
      npm run dev
      ```
-   - Health: open http://localhost:3000 — should return `{ message: "Server running" }`
+   - Health check: open http://localhost:3000
 
 2. Frontend:
-   - Vite server config: [frontend/vite.config.js](../frontend/vite.config.js)
    - Start:
      ```powershell
      cd frontend
      npm install
      npm run dev
      ```
-   - Open http://localhost:3001
+   - Open http://localhost:5173
+
+### Production Mode (Single Server)
+
+1. Build frontend:
+   ```powershell
+   cd frontend
+   npm run build
+   ```
+
+2. Copy build to backend:
+   ```powershell
+   xcopy /E /I /Y dist ..\backend\dist
+   ```
+
+3. Start backend (serves both API and frontend):
+   ```powershell
+   cd ..\backend
+   npm start
+   ```
+   - Application available at: http://localhost:3000
 
 ## Backend Flow
 
@@ -57,17 +81,25 @@ This application enables professors to run timed feedback sessions and students 
 - JWT contains `id`, `email`, and `role`
 - `authMiddleware` verifies token and attaches `req.user`
 - `roleMiddleware(["PROFESSOR"])` protects professor-only endpoints
+- Routes: `/api/auth/signup`, `/api/auth/login`
 
 ### Activities
 - Create/List (professor only): [backend/routes/activityRoutes.js](../backend/routes/activityRoutes.js)
   - Middleware chain for create: `auth` → `role(["PROFESSOR"])` → `validate([...])` → controller
-- Get by code (student use): `GET /activities/:code` (no auth required)
+- Get by code (student use): `GET /api/activities/:code` (no auth required)
 - Storage model: [backend/models/activity.js](../backend/models/activity.js)
+- Routes: `/api/activities`
 
 ### Feedback
-- Submit (students): `POST /feedbacks`
-- List by activity (professors): `GET /feedbacks/:activityId`
+- Submit (students): `POST /api/feedbacks`
+- List by activity (professors): `GET /api/feedbacks/:activityId`
 - Storage model: [backend/models/feedback.js](../backend/models/feedback.js)
+- Real-time updates via Socket.io when new feedback is submitted
+
+### Quotes
+- External API proxy: `GET /api/quotes/quote`
+- Fetches motivational quotes from ZenQuotes API
+- Used in QuoteBanner component
 
 ### Database & Migrations
 - ORM: Sequelize; dialect: PostgreSQL
@@ -85,8 +117,12 @@ This application enables professors to run timed feedback sessions and students 
 - Router/UI: [frontend/src/App.jsx](../frontend/src/App.jsx)
 - Auth context: [frontend/src/context/AuthContext.jsx](../frontend/src/context/AuthContext.jsx)
 - API client (axios): [frontend/src/services/api.js](../frontend/src/services/api.js)
-  - Base URL: `http://localhost:3000` (or `VITE_API_URL`)
+  - Base URL: Uses `window.location` for dynamic API URLs (deployment-ready)
+  - Falls back to `VITE_API_URL` environment variable
   - Adds `Authorization: Bearer <token>` when token exists
+  - All requests go to `/api/*` endpoints
+- Socket.io client: [frontend/src/services/socket.js](../frontend/src/services/socket.js)
+  - Connects to same origin as frontend for real-time updates
 
 ### Pages
 - Professor
@@ -110,10 +146,54 @@ This application enables professors to run timed feedback sessions and students 
    - Share the code with students
    - Monitor live feedback on the dashboard
 
-2. Student
-   - Go to `/student/join` and enter the access code
-   - Submit emoticon feedback during the active session
+2. StudentDeployment
+- **Development**: 
+  - Frontend: port 5173 (Vite dev server)
+  - Backend: port 3000
+- **Production**: 
+  - Single server on port 3000 (or Railway-assigned port)
+  - Backend serves static frontend files from `dist/`
+  - All API routes prefixed with `/api`
+  - Socket.io on same port as HTTP server
 
+## Deployment to Railway
+
+1. Buquotes don't load, check the `/api/quotes/quote` endpoint
+- In production, ensure `backend/dist/` contains the built frontend files
+- For Railway deployment, verify DATABASE_URL is set and migrations have run
+
+## Quick Commands
+```powershell
+# Development - Backend
+cd backend
+npm install
+npm run migrate
+npm run dev
+
+# Development - Frontend
+cd frontend
+npm install
+npm run dev
+
+# Production Build & Deploy
+cd frontend
+npm run build
+xcopy /E /I /Y dist ..\backend\dist
+cd ..\backend
+npm start
+
+3. Push to GitHub and connect to Railway:
+   ```powershell
+   cd backend
+   git add .
+   git commit -m "Deploy to Railway"
+   git push origin main
+   ```
+
+4. Run migrations on Railway:
+   ```powershell
+   railway run npm run migrate
+   ```
 ## Ports & Proxy
 - Frontend: port 3001 ([frontend/vite.config.js](../frontend/vite.config.js))
 - Backend: port 3000 ([backend/app.js](../backend/app.js))

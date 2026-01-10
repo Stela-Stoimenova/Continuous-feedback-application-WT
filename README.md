@@ -178,6 +178,62 @@ Provides a live data stream to the professor dashboard, sending new feedback eve
 
 **IMPORTANT:** Never commit directly to main/master branch. All development must occur on feature branches.
 
+**Workflow:**
+1. Create a feature branch from main: `git checkout -b feature/feature-name`
+2. Implement changes with descriptive commits
+3. Test locally before pushing
+4. Push to remote: `git push origin feature/feature-name`
+5. Create pull request for code review
+6. Merge to main after approval
+
+**Branch Naming Convention:**
+- Feature branches: `feature/description`
+- Bug fixes: `fix/issue-description`
+- Documentation: `docs/description`
+
+### Setup Instructions
+
+**Prerequisites:**
+- Node.js (v16 or higher)
+- PostgreSQL (v12 or higher)
+- npm or yarn package manager
+
+**Backend Setup:**
+```bash
+cd backend
+npm install
+```
+
+Create a `.env` file in the backend directory:
+```env
+DB_NAME=continuous_feedback_db
+DB_USER=postgres
+DB_PASSWORD=your_password
+DB_HOST=localhost
+DB_PORT=5432
+JWT_SECRET=your_secret_key_here
+NODE_ENV=development
+PORT=3000
+```
+
+Run database migrations:
+```bash
+npm run migrate
+```
+
+Start the development server:
+```bash
+npm run dev
+```
+
+**Frontend Setup:**
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend will be available at `http://localhost:5173` and will connect to the backend at `http://localhost:3000`.
 
 ### Emoticon Configuration
 
@@ -195,15 +251,191 @@ Render these in a 2x2 CSS grid layout. On click, submit feedback to the POST /ap
 ### Routing Structure
 
 Each page corresponds to a route:
+- `/login` - Professor authentication
+- `/signup` - Professor registration
 - `/professor/create` - Create new activity
 - `/professor/activities` - View activity list
-- `/professor/activity/:id` - Live feedback view
+- `/professor/activity/:id` - Live feedback dashboard
 - `/student/join` - Enter access code
 - `/student/feedback/:activityId` - Submit feedback
 
-More coming soon...
+**Protected Routes:**
+Professor-only routes are protected by authentication middleware. Unauthenticated access redirects to the login page.
 
-To fulfill the requirement of accessing data from an external service, a public API will be integrated. Specific implementation details will be determined during Stage 2 development.
+### External API Integration
+
+The application integrates with the **ZenQuotes API** to display motivational quotes on the main interface. This fulfills the requirement of accessing data from an external service.
+
+**Implementation:**
+- Endpoint: `GET /api/quotes/quote`
+- Backend proxies requests to `https://zenquotes.io/api/random`
+- Quotes are displayed in the QuoteBanner component
+- Provides inspirational messages to enhance user experience
+
+## Project Stages
+
+### Stage 1: Foundation & Core Features (Completed)
+- Database schema design and implementation
+- Backend API with Express and Sequelize
+- JWT authentication system
+- Frontend React application with Tailwind CSS
+- Activity creation and management
+- Anonymous feedback submission
+- Basic professor dashboard
+
+### Stage 2: Real-Time Features (Completed)
+- Socket.io integration for live feedback updates
+- Real-time dashboard with instant feedback display
+- WebSocket connection management
+- Live participant tracking
+- External API integration (ZenQuotes)
+
+### Stage 3: Production Deployment (Current)
+- Production configuration for single-server deployment
+- Environment-based API URL configuration
+- Static file serving from backend
+- PostgreSQL production setup with SSL
+- Railway deployment in progress
+- Database migrations on production
+- Environment variables configuration
+
+### Stage 4: Enhancements & Optimization (Planned)
+- Advanced analytics and feedback visualizations
+- Export feedback data to CSV/PDF
+- Email notifications for session start/end
+- Activity templates and duplication
+- Mobile app optimization
+- Performance monitoring and logging
+
+## Application Structure
+
+### Backend Architecture
+
+```
+backend/
+├── app.js                 # Express server setup & configuration
+├── config/
+│   └── config.js          # Database configuration (dev/test/prod)
+├── controllers/
+│   ├── activityController.js    # Activity CRUD operations
+│   ├── authController.js        # Login/signup logic
+│   ├── feedbackController.js    # Feedback submission & retrieval
+│   └── quoteController.js       # External API proxy
+├── middleware/
+│   ├── authMiddleware.js        # JWT validation
+│   ├── roleMiddleware.js        # Role-based access control
+│   ├── validateMiddleware.js    # Request validation
+│   └── errorHandler.js          # Global error handling
+├── migrations/
+│   ├── 20251219000001-create-user.js
+│   ├── 20251219000002-create-activity.js
+│   └── 20251219000003-create-feedback.js
+├── models/
+│   ├── index.js           # Sequelize initialization
+│   ├── user.js            # Professor/admin model
+│   ├── activity.js        # Feedback session model
+│   └── feedback.js        # Anonymous feedback model
+├── routes/
+│   ├── authRoutes.js      # Authentication endpoints
+│   ├── activityRoutes.js  # Activity management
+│   ├── feedbackRoutes.js  # Feedback operations
+│   └── quoteRoutes.js     # External API routes
+├── services/
+│   ├── authService.js     # Business logic for auth
+│   ├── activityService.js # Business logic for activities
+│   ├── feedbackService.js # Business logic for feedback
+│   └── quoteService.js    # External API integration
+├── dist/                  # Frontend build (production)
+├── .env                   # Environment variables
+└── package.json           # Dependencies & scripts
+```
+
+### Frontend Architecture
+
+```
+frontend/
+├── src/
+│   ├── main.jsx           # Application entry point
+│   ├── App.jsx            # Root component & routing
+│   ├── index.css          # Global styles & Tailwind
+│   ├── components/
+│   │   ├── Navbar.jsx            # Navigation component
+│   │   ├── PrivateRoute.jsx      # Route protection
+│   │   └── QuoteBanner.jsx       # Motivational quotes
+│   ├── context/
+│   │   └── AuthContext.jsx       # Global auth state
+│   ├── pages/
+│   │   ├── auth/
+│   │   │   ├── Login.jsx         # Professor login
+│   │   │   └── Signup.jsx        # Professor registration
+│   │   ├── professor/
+│   │   │   ├── Activities.jsx         # Activity list
+│   │   │   ├── CreateActivity.jsx     # New activity form
+│   │   │   ├── ActivityDashboard.jsx  # Live feedback view
+│   │   │   └── ProfessorLayout.jsx    # Professor page layout
+│   │   └── student/
+│   │       ├── StudentJoin.jsx        # Enter access code
+│   │       └── StudentFeedback.jsx    # Submit feedback
+│   ├── services/
+│   │   ├── api.js         # Axios HTTP client
+│   │   └── socket.js      # Socket.io client
+│   └── utils/
+│       ├── dateUtils.js   # Date formatting helpers
+│       ├── emoticons.js   # Emotion type mappings
+│       └── sessionId.js   # Anonymous session generation
+├── index.html             # HTML template
+├── vite.config.js         # Vite bundler configuration
+├── tailwind.config.js     # Tailwind CSS setup
+└── package.json           # Dependencies & scripts
+```
+
+### Key Design Patterns
+
+**Backend:**
+- **MVC Architecture** - Separation of routes, controllers, and business logic
+- **Service Layer** - Business logic isolated from HTTP handling
+- **Middleware Chain** - Authentication, validation, and error handling
+- **Repository Pattern** - Database operations through Sequelize models
+
+**Frontend:**
+- **Component-Based** - Reusable UI components with React
+- **Context API** - Global state management for authentication
+- **Protected Routes** - Role-based access control
+- **Service Abstraction** - Centralized API and Socket.io clients
+
+### Deployment Architecture
+
+**Development Mode:**
+- Frontend: Vite dev server on port 5173
+- Backend: Express server on port 3000
+- Separate processes for hot-reloading
+
+**Production Mode:**
+- Single Node.js server on port 3000 (or Railway-assigned)
+- Backend serves compiled frontend from `/dist`
+- All API routes prefixed with `/api`
+- Socket.io shares HTTP server instance
+- Static assets cached for performance
+
+### Security Considerations
+
+- **Password Security** - bcrypt hashing with salt rounds
+- **JWT Authentication** - Tokens expire after 1 hour
+- **SQL Injection Protection** - Sequelize ORM parameterized queries
+- **CORS Configuration** - Restricted origins in production
+- **Input Validation** - express-validator middleware
+- **Environment Variables** - Sensitive data never committed
+- **Anonymous Sessions** - No personally identifiable information stored
+- **SSL/TLS** - HTTPS enforced on production deployment
+
+### Performance Optimizations
+
+- **Database Indexes** - Optimized queries on activity_id and created_at
+- **Connection Pooling** - Sequelize manages database connections
+- **Real-Time Updates** - Socket.io reduces polling overhead
+- **Static Asset Caching** - Browser caching for frontend files
+- **Lazy Loading** - React components loaded on demand
 
 ---
+
 
