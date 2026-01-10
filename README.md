@@ -409,25 +409,6 @@ frontend/
 - Socket.io shares HTTP server instance
 - Static assets cached for performance
 
-### Security Considerations
-
-- **Password Security** - bcrypt hashing with salt rounds
-- **JWT Authentication** - Tokens expire after 1 hour
-- **SQL Injection Protection** - Sequelize ORM parameterized queries
-- **CORS Configuration** - Restricted origins in production
-- **Input Validation** - express-validator middleware
-- **Environment Variables** - Sensitive data never committed
-- **Anonymous Sessions** - No personally identifiable information stored
-- **SSL/TLS** - HTTPS enforced on production deployment
-
-### Performance Optimizations
-
-- **Database Indexes** - Optimized queries on activity_id and created_at
-- **Connection Pooling** - Sequelize manages database connections
-- **Real-Time Updates** - Socket.io reduces polling overhead
-- **Static Asset Caching** - Browser caching for frontend files
-- **Lazy Loading** - React components loaded on demand
-
 ---
 
 
