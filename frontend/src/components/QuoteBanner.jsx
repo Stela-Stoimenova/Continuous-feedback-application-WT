@@ -1,6 +1,7 @@
 import {useEffect, useState} from 'react'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+const API_URL = import.meta.env.VITE_API_URL || 
+  `${window.location.protocol}//${window.location.hostname}:${window.location.port}`
 
 function QuoteBanner(){
     const [quote, setQuote] = useState(null)
@@ -11,7 +12,7 @@ function QuoteBanner(){
         const load = async()=>{
             try{
                 // Call backend proxy to avoid CORS/https issues
-                const res = await fetch(`${API_URL}/api/quote`)
+                const res = await fetch(`${API_URL}/api/quotes/quote`)
                 const data = await res.json()
                 if(!mounted) return
                 setQuote({

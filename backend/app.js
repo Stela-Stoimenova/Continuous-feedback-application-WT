@@ -1,5 +1,6 @@
 const express = require('express');
 const http = require('http');
+const path = require('path');
 const { Server } = require('socket.io');
 const cors = require('cors');
 require('dotenv').config();
@@ -16,12 +17,13 @@ const server = http.createServer(app);
 // configure socket.io
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",  // frontend URL (Vite default)
+    origin: process.env.FRONTEND_URL || "*",  // allow all origins in production
     methods: ["GET", "POST"]
   }
 });
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static("dist"));
 app.use(cors());
 
 // socket.io connection handler
@@ -48,13 +50,11 @@ io.on('connection', (socket) => {
 // make io available in the entire application
 app.set('io', io);
 
-// Test route
-app.get('/', (req, res) => res.json({ message: 'Server running' }));
-
-app.use('/auth', authRoutes);
-app.use('/activities', activityRoutes);
-app.use('/feedbacks', feedbackRoutes);
-app.use('/api', quoteRoutes);
+// API routes with /api prefix
+app.use('/api/auth', authRoutes);
+app.use('/api/activities', activityRoutes);
+app.use('/api/feedbacks', feedbackRoutes);
+app.use('/api/quotes', quoteRoutes);
 
 sequelize.sync()
   .then(() => {

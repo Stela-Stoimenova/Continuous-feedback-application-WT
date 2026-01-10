@@ -1,2 +1,12 @@
 .env
 MERGE_ANALYSIS.md
+
+# Node dependencies
+backend/node_modules/
+frontend/node_modules/
+node_modules/
+
+# Logs and npm cache artifacts
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

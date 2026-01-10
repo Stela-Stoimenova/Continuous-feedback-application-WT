@@ -1,7 +1,7 @@
 // socket.io client service for real-time communication
 import { io } from 'socket.io-client';
 
-const SOCKET_URL = 'http://localhost:3000';
+const SOCKET_URL = `${window.location.protocol}//${window.location.hostname}:${window.location.port}`;
 
 class SocketService {
   constructor() {
