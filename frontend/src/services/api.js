@@ -10,7 +10,9 @@ import axios from 'axios'
 
 // base URL for all API requests
 const API_URL = import.meta.env.VITE_API_URL || 
-  `${window.location.protocol}//${window.location.hostname}:${window.location.port}/api`;
+  (import.meta.env.DEV 
+    ? 'http://localhost:3000/api'  // Development: backend on port 3000
+    : `${window.location.protocol}//${window.location.hostname}:${window.location.port}/api`);  // Production: same origin
 
 // create axios instance with default configuration
 const api = axios.create({

@@ -1,7 +1,10 @@
 // socket.io client service for real-time communication
 import { io } from 'socket.io-client';
 
-const SOCKET_URL = `${window.location.protocol}//${window.location.hostname}:${window.location.port}`;
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 
+  (import.meta.env.DEV 
+    ? 'http://localhost:3000'  // Development: backend on port 3000
+    : `${window.location.protocol}//${window.location.hostname}:${window.location.port}`);  // Production: same origin
 
 class SocketService {
   constructor() {

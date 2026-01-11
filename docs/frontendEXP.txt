@@ -1,0 +1,435 @@
+FRONTEND OVERVIEW:
+User (Browser) -> React Components -> API Service (Axios) -> Backend (Express) -> Database (PostgreSQL)
+Real-time updates: Socket.io Client -> Socket.io Server -> Broadcast to connected clients
+
+frontend/
+├─ src/
+│  ├─ components/      # Reusable UI components (Navbar, PrivateRoute, QuoteBanner)
+│  ├─ context/         # React Context for global state (AuthContext)
+│  ├─ pages/           # Page components organized by feature
+│  │  ├─ auth/         # Login and Signup pages
+│  │  ├─ professor/    # Professor dashboard, create activity, view activities
+│  │  └─ student/      # Student join and feedback pages
+│  ├─ services/        # API client (axios) and Socket.io client
+│  ├─ utils/           # Helper functions (validation, date formatting, session ID)
+│  ├─ App.jsx          # Main app component with routing
+│  ├─ main.jsx         # Application entry point
+│  └─ index.css        # Global styles and Tailwind CSS
+├─ index.html          # HTML template
+├─ vite.config.js      # Vite bundler configuration
+└─ package.json        # Dependencies and scripts
+
+extra features are:
+-components: reusable UI pieces like Navbar, PrivateRoute for route protection, QuoteBanner for external API quotes
+-context: global state management for authentication (who is logged in, token storage)
+-services: centralized API calls and Socket.io connection
+-utils: validation functions, date helpers, session ID generation
+-routing: React Router for navigation between pages
+-validation: input validation for forms (email, password, access codes, dates)
+
+Since the project is Continuous Feedback Web App where:
+
+-Professors create feedback sessions
+-Students join via an access code
+-Students submit anonymous feedback (emotions: happy, bored, surprised, confused)
+-Frontend: React.js SPA with Vite, Tailwind CSS, React Router
+
+For the moment I implemented:
+
+-React SPA with component-based architecture
+-React Router for navigation and protected routes
+-Authentication context for global auth state
+-API service layer with axios for HTTP requests
+-Socket.io client for real-time feedback updates
+-Form validation for all user inputs
+-Responsive UI with Tailwind CSS
+
+I need:
+
+-optional: test coverage for components
+-optional: error boundary components for better error handling
+-optional: loading skeletons for better UX
+-optional: offline support with service workers
+
+ROUTING
+App.jsx is the traffic controller: it decides which page to show based on the URL
+
+Public routes (no authentication needed):
+- /login → Login page for professors
+- /signup → Signup page for new professors
+- /student/join → Student enters access code
+- /student/feedback/:activityId → Student submits feedback
+
+Protected routes (authentication required):
+- /professor/create → Create new activity
+- /professor/activities → List all activities
+- /professor/activity/:id → View activity dashboard with feedback
+
+Default route:
+- / → Redirects to /login
+
+How routing works:
+User types URL or clicks link → React Router checks path → Matches to Route component → Renders page component
+Protected routes go through PrivateRoute first → checks if user is logged in → allows or redirects
+
+CONTEXT (Global State)
+AuthContext provides authentication state to entire app
+
+AuthContext.jsx:
+- Stores user info and JWT token
+- Persists to localStorage (survives page refresh)
+- Provides login(), signup(), logout() functions
+- Exposes isAuthenticated flag
+
+How it works:
+1. App starts → AuthContext checks localStorage for saved token
+2. If token exists → user is logged in automatically
+3. Login/Signup → saves token to localStorage + updates state
+4. Logout → clears localStorage + updates state
+5. Any component can use useAuth() hook to access auth state
+
+Why Context?
+- Avoids prop drilling (passing user/token through every component)
+- Single source of truth for auth state
+- Easy to access from any component
+
+COMPONENTS
+Reusable UI pieces that can be used across pages
+
+Navbar.jsx:
+- Shows navigation links
+- Displays user name when logged in
+- Has logout button
+- Responsive design
+
+PrivateRoute.jsx:
+- Guards protected routes
+- Checks if user is authenticated
+- Shows loading state while checking
+- Redirects to /login if not authenticated
+- Wraps professor routes
+
+QuoteBanner.jsx:
+- Fetches motivational quotes from external API
+- Displays quote and author
+- Handles loading and error states
+- Used on main pages for inspiration
+
+PAGES
+Page components represent full screens/views
+
+Auth Pages:
+Login.jsx:
+- Email and password form
+- Validates email format and password length
+- Calls AuthContext.login()
+- Shows error messages
+- Redirects to /professor/activities on success
+
+Signup.jsx:
+- Name, email, password, confirm password form
+- Validates all inputs (name length, email format, password strength)
+- Checks password match
+- Calls AuthContext.signup()
+- Redirects to /professor/activities on success
+
+Professor Pages:
+CreateActivity.jsx:
+- Form to create new feedback session
+- Access code input (with generate button)
+- Start and end time pickers
+- Validates: access code (4-10 chars, alphanumeric), dates (end > start, not in past)
+- Submits to activityAPI.create()
+- Redirects to activities list on success
+
+Activities.jsx:
+- Lists all activities created by professor
+- Shows activity code, start/end times, status (active/upcoming/ended)
+- Links to individual activity dashboards
+- Fetches data from activityAPI.getAll()
+
+ActivityDashboard.jsx:
+- Shows detailed view of one activity
+- Displays feedback statistics (total, by emotion, participants)
+- Charts: bar chart and pie chart for emotion distribution
+- Real-time updates via Socket.io
+- Recent feedback timeline
+- Fetches initial data, then listens for new feedback via socket
+
+ProfessorLayout.jsx:
+- Wrapper layout for professor pages
+- Includes Navbar
+- Provides consistent layout structure
+
+Student Pages:
+StudentJoin.jsx:
+- Simple form to enter access code
+- Validates access code format (4-10 chars, alphanumeric)
+- Calls activityAPI.getByCode()
+- Navigates to feedback page if code is valid
+- Shows error if code not found
+
+StudentFeedback.jsx:
+- Displays activity info (code, start/end times, status)
+- 2x2 grid of emoticons (Happy, Bored, Surprised, Confused)
+- Clicking emoticon submits feedback
+- Shows success message after submission
+- Tracks submission count
+- Handles activity states: active (can submit), upcoming (waiting), ended (read-only)
+- Generates anonymous session ID per activity
+
+SERVICES
+Centralized API and real-time communication
+
+api.js (Axios HTTP Client):
+- Creates axios instance with base URL
+- Automatically adds JWT token to all requests via interceptor
+- Exports organized API methods:
+  - authAPI: signup, login
+  - activityAPI: create, getAll, getByCode, getById
+  - feedbackAPI: submit, getByActivity
+
+How it works:
+1. Component calls api.activityAPI.create(data)
+2. Axios interceptor adds Authorization: Bearer <token> header
+3. Request sent to backend
+4. Response returned to component
+5. Component handles success/error
+
+Why centralized?
+- Single place to change API URL
+- Automatic token attachment
+- Consistent error handling
+- Easy to add logging or retry logic
+
+socket.js (Socket.io Client):
+- Manages WebSocket connection to backend
+- Connects when component mounts
+- Joins activity "rooms" to receive updates
+- Listens for 'new-feedback' events
+- Disconnects when component unmounts
+
+How it works:
+1. ActivityDashboard mounts → socketService.connect()
+2. Joins activity room → socketService.joinActivity(activityId)
+3. Listens for updates → socketService.onNewFeedback(callback)
+4. New feedback submitted → backend emits event → frontend receives → updates UI
+5. Component unmounts → socketService.disconnect()
+
+Why Socket.io?
+- Real-time updates without polling
+- Efficient (only sends when something changes)
+- Automatic reconnection
+- Room-based messaging (only relevant clients get updates)
+
+UTILS
+Helper functions used across the app
+
+validation.js:
+- validateAccessCode(): checks length (4-10), alphanumeric only, not empty
+- validateEmail(): checks format, length (max 254), single @, valid domain
+- validatePassword(): checks length (6-128), not empty, no leading/trailing whitespace
+- validateActivityDates(): checks end > start, not in past, duration limits (1 min - 1 year)
+
+dateUtils.js:
+- formatDateTime(): formats dates for display
+- isActivityActive(): checks if activity is currently active
+- getActivityStatus(): returns 'active', 'upcoming', or 'ended'
+
+emoticons.js:
+- EMOTIONS array: defines 4 emotions with emoji, label, value, colors
+- getEmotionById(): finds emotion by numeric value (1-4)
+
+sessionId.js:
+- getSessionId(): generates unique anonymous session ID per activity
+- Stores in localStorage with activity-specific key
+- Used to track distinct participants without identifying them
+
+VALIDATION
+Input validation happens in two places:
+
+1. HTML5 validation (browser):
+- required, minLength, maxLength attributes
+- type="email" for email validation
+- Prevents form submission if invalid
+
+2. JavaScript validation (before API call):
+- Custom validation functions in validation.js
+- More detailed checks (format, business rules)
+- Shows user-friendly error messages
+- Prevents unnecessary API calls
+
+Why both?
+- HTML5: immediate feedback, prevents bad input
+- JavaScript: custom rules, better error messages, business logic
+
+FORM FLOW
+How forms work from user input to API call:
+
+1. User types in input field
+2. onChange handler updates state
+3. Real-time validation (for some fields like access code - filters invalid chars)
+4. User clicks submit
+5. handleSubmit prevents default form submission
+6. JavaScript validation runs
+7. If invalid → show error message, stop
+8. If valid → set loading state, call API
+9. API call succeeds → show success, redirect or update UI
+10. API call fails → show error message, reset loading
+
+Example: CreateActivity form
+- User enters access code → onChange filters to alphanumeric, converts to uppercase
+- User selects dates → stored as datetime-local format
+- User clicks "Create Activity" → validateAccessCode() and validateActivityDates() run
+- If valid → activityAPI.create() called with trimmed, validated data
+- Success → redirect to /professor/activities
+- Error → show error message below form
+
+AUTHENTICATION FLOW
+How login/authentication works:
+
+1. User enters email/password on Login page
+2. Validation checks email format and password length
+3. Login form calls AuthContext.login(email, password)
+4. AuthContext calls authAPI.login() with credentials
+5. Backend validates and returns JWT token + user info
+6. AuthContext saves token and user to localStorage
+7. AuthContext updates state (user, token, isAuthenticated)
+8. App.jsx detects isAuthenticated = true
+9. PrivateRoute allows access to protected pages
+10. Navbar shows user name and logout button
+
+On page refresh:
+1. App loads → AuthContext checks localStorage
+2. Finds saved token → sets state automatically
+3. User stays logged in
+
+On logout:
+1. User clicks logout → AuthContext.logout()
+2. Clears localStorage
+3. Updates state (user = null, token = null)
+4. PrivateRoute redirects to /login
+
+REAL-TIME UPDATES
+How Socket.io provides live feedback:
+
+1. Professor opens ActivityDashboard
+2. Component mounts → socketService.connect()
+3. Joins activity room → socketService.joinActivity(activityId)
+4. Listens for events → socketService.onNewFeedback((data) => { update state })
+5. Student submits feedback → backend receives POST /api/feedbacks
+6. Backend creates feedback in DB
+7. Backend emits 'new-feedback' event to activity room
+8. All connected clients in that room receive event
+9. ActivityDashboard receives event → adds new feedback to state
+10. UI updates automatically (charts, stats, timeline)
+
+Why this is better than polling:
+- Polling: frontend asks "any new feedback?" every few seconds → wastes bandwidth, delay
+- Socket.io: backend pushes updates instantly → efficient, real-time
+
+STATE MANAGEMENT
+React state management in this app:
+
+Local State (useState):
+- Form inputs (email, password, access code, etc.)
+- Loading states (is submitting, is fetching)
+- Error messages
+- UI state (show/hide modals, selected tab)
+
+Global State (Context):
+- Authentication (user, token, isAuthenticated)
+- Available via useAuth() hook anywhere
+
+Why not Redux?
+- Small app, simple state needs
+- Context API is enough for auth state
+- Less boilerplate, easier to understand
+
+STYLING
+Tailwind CSS utility-first styling:
+
+- No separate CSS files for components
+- Classes directly in JSX: className="bg-blue-500 text-white p-4"
+- Responsive: className="md:grid-cols-2" (2 columns on medium screens)
+- Consistent design system (colors, spacing, typography)
+
+Benefits:
+- Fast development (no switching between files)
+- No CSS conflicts (scoped to component)
+- Easy responsive design
+- Consistent spacing/colors
+
+How it all work together:
+User opens browser → main.jsx renders App.jsx → App.jsx sets up routing and AuthProvider
+User navigates to /login → React Router renders Login component → User enters credentials
+Login calls AuthContext.login() → AuthContext calls api.authAPI.login() → Backend validates
+Backend returns token → AuthContext saves to localStorage → Updates state → Redirects to /professor/activities
+User creates activity → CreateActivity validates inputs → Calls api.activityAPI.create() → Backend creates activity
+User views dashboard → ActivityDashboard mounts → Connects Socket.io → Fetches initial feedback → Listens for updates
+Student joins → StudentJoin validates code → Calls api.activityAPI.getByCode() → Navigates to feedback page
+Student submits feedback → StudentFeedback calls api.feedbackAPI.submit() → Backend saves → Emits Socket.io event
+ActivityDashboard receives Socket.io event → Updates state → UI refreshes automatically
+
+| Layer      | Responsibility                    |
+| ---------- | --------------------------------- |
+| Pages      | Full screen views                 |
+| Components | Reusable UI pieces                |
+| Context    | Global state (auth)               |
+| Services   | API calls and Socket.io           |
+| Utils      | Helper functions                  |
+| Router     | Navigation and route protection   |
+| Validation | Input validation                  |
+
+ROUTING FLOW
+How navigation works:
+
+User clicks link or types URL
+  ↓
+React Router checks path
+  ↓
+Is it a protected route? (starts with /professor)
+  ↓ YES
+PrivateRoute checks isAuthenticated
+  ↓
+Is user logged in?
+  ↓ NO
+Redirect to /login
+  ↓ YES
+Render page component
+  ↓
+Component fetches data (if needed)
+  ↓
+Component renders UI
+
+RESPONSIVE DESIGN
+App works on desktop, tablet, and mobile:
+
+- Tailwind responsive classes: sm:, md:, lg: breakpoints
+- Grid layouts adapt: 1 column on mobile, 2-4 columns on desktop
+- Forms stack vertically on small screens
+- Touch-friendly button sizes on mobile
+- Accessible: proper labels, keyboard navigation
+
+ERROR HANDLING
+How errors are handled:
+
+API Errors:
+- Try/catch blocks in async functions
+- Error messages from backend displayed to user
+- Network errors show generic "Failed to connect" message
+- 401/403 errors → logout and redirect to login
+
+Validation Errors:
+- Shown inline below form fields
+- Prevents form submission
+- Clear, user-friendly messages
+
+Socket.io Errors:
+- Connection failures logged to console
+- Graceful degradation (app still works without real-time)
+
+Loading States:
+- Buttons show "Loading..." during API calls
+- Prevents double-submission
+- Better UX than silent waiting
