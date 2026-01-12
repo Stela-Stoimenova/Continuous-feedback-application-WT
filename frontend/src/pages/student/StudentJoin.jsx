@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { activityAPI } from '../../services/api'
+import { validateAccessCode } from '../../utils/validation'
 import { Activity, AlertCircle, ArrowRight } from 'lucide-react'
 
 function StudentJoin() {
@@ -15,8 +16,10 @@ function StudentJoin() {
     e.preventDefault()
     setError('')
 
-    if (!accessCode.trim()) {
-      setError('Please enter an access code')
+    // Validate access code
+    const codeValidation = validateAccessCode(accessCode)
+    if (!codeValidation.isValid) {
+      setError(codeValidation.error)
       return
     }
 
@@ -74,10 +77,15 @@ function StudentJoin() {
                 type="text"
                 required
                 value={accessCode}
-                onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
+                onChange={(e) => {
+                  // Only allow alphanumeric characters, convert to uppercase
+                  const value = e.target.value.replace(/[^A-Z0-9]/gi, '').toUpperCase()
+                  setAccessCode(value)
+                }}
                 className="input-field text-center text-3xl font-bold tracking-widest uppercase"
                 placeholder="ABC123"
                 maxLength={10}
+                minLength={4}
                 autoFocus
               />
               <p className="text-sm text-gray-500 mt-2 text-center">

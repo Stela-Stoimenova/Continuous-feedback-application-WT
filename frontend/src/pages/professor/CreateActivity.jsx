@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { activityAPI } from '../../services/api'
+import { validateAccessCode, validateActivityDates } from '../../utils/validation'
 import { AlertCircle, CheckCircle, Calendar, Clock, Key } from 'lucide-react'
 
 function CreateActivity() {
@@ -25,25 +26,28 @@ function CreateActivity() {
     setError('')
     setSuccess(false)
 
-    // Validation
-    if (!accessCode || !startsAt || !endsAt) {
-      setError('All fields are required')
+    // Validate access code
+    const codeValidation = validateAccessCode(accessCode)
+    if (!codeValidation.isValid) {
+      setError(codeValidation.error)
       return
     }
 
-    const start = new Date(startsAt)
-    const end = new Date(endsAt)
-
-    if (end <= start) {
-      setError('End time must be after start time')
+    // Validate dates
+    const dateValidation = validateActivityDates(startsAt, endsAt)
+    if (!dateValidation.isValid) {
+      setError(dateValidation.error)
       return
     }
 
     setLoading(true)
 
     try {
+      const start = new Date(startsAt)
+      const end = new Date(endsAt)
+      
       const response = await activityAPI.create({
-        access_code: accessCode,
+        access_code: accessCode.trim().toUpperCase(),
         starts_at: start.toISOString(),
         ends_at: end.toISOString()
       })
@@ -101,10 +105,15 @@ function CreateActivity() {
                 type="text"
                 required
                 value={accessCode}
-                onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
+                onChange={(e) => {
+                  // Only allow alphanumeric characters, convert to uppercase
+                  const value = e.target.value.replace(/[^A-Z0-9]/gi, '').toUpperCase()
+                  setAccessCode(value)
+                }}
                 className="input-field"
                 placeholder="ABC123"
                 maxLength={10}
+                minLength={4}
               />
               <button
                 type="button"

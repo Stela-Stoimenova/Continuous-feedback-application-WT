@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { validateEmail, validatePassword } from '../../utils/validation'
 import { Activity, AlertCircle } from 'lucide-react'
 
 function Login() {
@@ -16,9 +17,24 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+
+    // Validate email
+    const emailValidation = validateEmail(email)
+    if (!emailValidation.isValid) {
+      setError(emailValidation.error)
+      return
+    }
+
+    // Validate password
+    const passwordValidation = validatePassword(password)
+    if (!passwordValidation.isValid) {
+      setError(passwordValidation.error)
+      return
+    }
+
     setLoading(true)
 
-    const result = await login(email, password)
+    const result = await login(email.trim(), password)
     
     if (result.success) {
       navigate('/professor/activities')
@@ -60,6 +76,7 @@ function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="input-field"
+                maxLength={254}
               />
             </div>
 
@@ -74,6 +91,8 @@ function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="input-field"
+                minLength={6}
+                maxLength={128}
               />
             </div>
 

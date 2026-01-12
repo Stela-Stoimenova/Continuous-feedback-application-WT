@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { validateEmail, validatePassword } from '../../utils/validation'
 import { Activity, AlertCircle } from 'lucide-react'
 
 function Signup() {
@@ -19,12 +20,33 @@ function Signup() {
     e.preventDefault()
     setError('')
 
-    // Validation
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters')
+    // Validate name
+    const trimmedName = name.trim()
+    if (!trimmedName) {
+      setError('Name cannot be empty')
       return
     }
 
+    if (trimmedName.length > 100) {
+      setError('Name is too long (maximum 100 characters)')
+      return
+    }
+
+    // Validate email
+    const emailValidation = validateEmail(email)
+    if (!emailValidation.isValid) {
+      setError(emailValidation.error)
+      return
+    }
+
+    // Validate password
+    const passwordValidation = validatePassword(password)
+    if (!passwordValidation.isValid) {
+      setError(passwordValidation.error)
+      return
+    }
+
+    // Validate password confirmation
     if (password !== confirmPassword) {
       setError('Passwords do not match')
       return
@@ -32,7 +54,7 @@ function Signup() {
 
     setLoading(true)
 
-    const result = await signup(name, email, password)
+    const result = await signup(trimmedName, email.trim(), password)
     
     if (result.success) {
       navigate('/professor/activities')
@@ -74,6 +96,7 @@ function Signup() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="input-field"
+                maxLength={100}
               />
             </div>
 
@@ -88,6 +111,7 @@ function Signup() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="input-field"
+                maxLength={254}
               />
             </div>
 
@@ -103,6 +127,7 @@ function Signup() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="input-field"
                 minLength={6}
+                maxLength={128}
               />
             </div>
 
@@ -117,6 +142,8 @@ function Signup() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="input-field"
+                minLength={6}
+                maxLength={128}
               />
             </div>
 
