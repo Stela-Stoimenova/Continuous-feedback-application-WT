@@ -14,7 +14,7 @@ module.exports = {
       
       // emit socket.io event after creating feedback
       const io = req.app.get('io');
-      io.to(activity_id.toString()).emit('new-feedback', {
+      io.to(req.body.activity_id.toString()).emit('new-feedback', {
         feedback: feedback,
         timestamp: new Date()
       });
